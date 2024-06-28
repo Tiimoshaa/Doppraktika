@@ -1,7 +1,7 @@
-import 'dart:io';
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:flutter_cache_manager/flutter_cache_manager.dart';
+import 'dart:io';
 
 void main() {
   runApp(MyApp());
@@ -23,7 +23,7 @@ class HomeScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Главный экран'),
+        title: Text('Меню'),
       ),
       body: Center(
         child: Column(
@@ -211,9 +211,6 @@ class SelectionScreen extends StatelessWidget {
                   context,
                   MaterialPageRoute(builder: (context) => NoteScreen()),
                 );
-                // After returning from NoteScreen, update UI if needed
-                // For example, fetch updated data or refresh UI
-                // In this case, we don't have data to fetch but if we had, we would load it here
               },
               child: Text('Заметки'),
             ),
@@ -267,35 +264,75 @@ class NoteScreen extends StatefulWidget {
 
 class _NoteScreenState extends State<NoteScreen> {
   final TextEditingController noteController = TextEditingController();
+  List<Note> notes = [];
 
   @override
   void initState() {
     super.initState();
-    loadNote();
+    loadNotes();
   }
 
-  Future<void> loadNote() async {
+  Future<void> loadNotes() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    String savedNote = prefs.getString('note') ?? '';
-    setState(() {
-      noteController.text = savedNote;
-    });
+    List<String>? notesJson = prefs.getStringList('notes');
+    if (notesJson != null) {
+      setState(() {
+        notes = notesJson.map((noteJson) => Note.fromJson(jsonDecode(noteJson))).toList();
+      });
+    }
+  }
+
+  Future<void> saveNotes() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    List<String> notesJson = notes.map((note) => jsonEncode(note.toJson())).toList();
+    await prefs.setStringList('notes', notesJson);
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Заметка'),
+        title: Text('Заметки'),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.delete),
+            onPressed: () {
+              setState(() {
+                notes.clear();
+                saveNotes();
+              });
+            },
+          ),
+        ],
       ),
       body: Padding(
         padding: const EdgeInsets.all(20.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
+            Expanded(
+              child: ListView.builder(
+                itemCount: notes.length,
+                itemBuilder: (context, index) {
+                  return ListTile(
+                    title: Text(notes[index].text),
+                    trailing: IconButton(
+                      icon: Icon(Icons.delete),
+                      onPressed: () {
+                        setState(() {
+                          notes.removeAt(index);
+                          saveNotes();
+                        });
+                      },
+                    ),
+                  );
+                },
+              ),
+            ),
+            SizedBox(height: 20),
             TextField(
               controller: noteController,
-              maxLines: 10,
+              maxLines: 5,
               decoration: InputDecoration(
                 hintText: 'Введите вашу заметку',
                 border: OutlineInputBorder(),
@@ -303,18 +340,40 @@ class _NoteScreenState extends State<NoteScreen> {
             ),
             SizedBox(height: 20),
             ElevatedButton(
-              onPressed: () async {
-                SharedPreferences prefs = await SharedPreferences.getInstance();
-                await prefs.setString('note', noteController.text);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Заметка сохранена')),
-                );
+              onPressed: () {
+                setState(() {
+                  notes.add(Note(
+                    id: DateTime.now().millisecondsSinceEpoch.toString(),
+                    text: noteController.text,
+                  ));
+                  noteController.clear();
+                  saveNotes();
+                });
               },
-              child: Text('Сохранить заметку'),
+              child: Text('Добавить заметку'),
             ),
           ],
         ),
       ),
     );
   }
+}
+
+class Note {
+  String id;
+  String text;
+
+  Note({
+    required this.id,
+    required this.text,
+  });
+
+  Note.fromJson(Map<String, dynamic> json)
+      : id = json['id'],
+        text = json['text'];
+
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'text': text,
+  };
 }
