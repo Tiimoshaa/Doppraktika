@@ -25,31 +25,43 @@ class HomeScreen extends StatelessWidget {
       appBar: AppBar(
         title: Text('Notes app'),
       ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            ElevatedButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => SelectionScreen()),
-                );
-              },
-              child: Text('Старт'),
+      body: Stack(
+        children: <Widget>[
+          Container(
+            decoration: BoxDecoration(
+              image: DecorationImage(
+                image: NetworkImage('https://bogatyr.club/uploads/posts/2023-03/thumbs/1678821186_bogatyr-club-p-fon-dlya-zametok-foni-vkontakte-67.png'), // Замените ссылку на ваше изображение
+                fit: BoxFit.cover,
+              ),
             ),
-            SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => ProfileScreen()),
-                );
-              },
-              child: Text('Профиль'),
+          ),
+          Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => SelectionScreen()),
+                    );
+                  },
+                  child: Text('Старт'),
+                ),
+                SizedBox(height: 20),
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => ProfileScreen()),
+                    );
+                  },
+                  child: Text('Профиль'),
+                ),
+              ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
       floatingActionButton: ThemeSwitcher(),
     );
@@ -214,6 +226,16 @@ class SelectionScreen extends StatelessWidget {
               },
               child: Text('Заметки'),
             ),
+            SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: () async {
+                await Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => ViewNotesScreen()),
+                );
+              },
+              child: Text('Просмотр заметок'),
+            ),
           ],
         ),
       ),
@@ -316,14 +338,19 @@ class _NoteScreenState extends State<NoteScreen> {
                 itemBuilder: (context, index) {
                   return ListTile(
                     title: Text(notes[index].text),
-                    trailing: IconButton(
-                      icon: Icon(Icons.delete),
-                      onPressed: () {
-                        setState(() {
-                          notes.removeAt(index);
-                          saveNotes();
-                        });
-                      },
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        IconButton(
+                          icon: Icon(Icons.delete),
+                          onPressed: () {
+                            setState(() {
+                              notes.removeAt(index);
+                              saveNotes();
+                            });
+                          },
+                        ),
+                      ],
                     ),
                   );
                 },
@@ -353,6 +380,133 @@ class _NoteScreenState extends State<NoteScreen> {
               child: Text('Добавить заметку'),
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class ViewNotesScreen extends StatefulWidget {
+  @override
+  _ViewNotesScreenState createState() => _ViewNotesScreenState();
+}
+
+class _ViewNotesScreenState extends State<ViewNotesScreen> {
+  List<Note> notes = [];
+
+  @override
+  void initState() {
+    super.initState();
+    loadNotes();
+  }
+
+  Future<void> loadNotes() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    List<String>? notesJson = prefs.getStringList('notes');
+    if (notesJson != null) {
+      setState(() {
+        notes = notesJson.map((noteJson) => Note.fromJson(jsonDecode(noteJson))).toList();
+      });
+    }
+  }
+
+  Future<void> saveNotes() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    List<String> notesJson = notes.map((note) => jsonEncode(note.toJson())).toList();
+    await prefs.setStringList('notes', notesJson);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Просмотр заметок'),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.delete),
+            onPressed: () {
+              setState(() {
+                notes.clear();
+                saveNotes();
+              });
+            },
+          ),
+        ],
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(20.0),
+        child: ListView.builder(
+          itemCount: notes.length,
+          itemBuilder: (context, index) {
+            return ListTile(
+              title: Text(notes[index].text),
+              trailing: IconButton(
+                icon: Icon(Icons.edit),
+                onPressed: () async {
+                  Note? editedNote = await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => EditNoteScreen(note: notes[index]),
+                    ),
+                  );
+                  if (editedNote != null) {
+                    setState(() {
+                      notes[index] = editedNote;
+                      saveNotes();
+                    });
+                  }
+                },
+              ),
+            );
+          },
+        ),
+      ),
+    );
+  }
+}
+
+class EditNoteScreen extends StatefulWidget {
+  final Note note;
+
+  EditNoteScreen({required this.note});
+
+  @override
+  _EditNoteScreenState createState() => _EditNoteScreenState();
+}
+
+class _EditNoteScreenState extends State<EditNoteScreen> {
+  late TextEditingController noteController;
+
+  @override
+  void initState() {
+    super.initState();
+    noteController = TextEditingController(text: widget.note.text);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Редактировать заметку'),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.save),
+            onPressed: () {
+              widget.note.text = noteController.text;
+              Navigator.of(context).pop(widget.note);
+            },
+          ),
+        ],
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(20.0),
+        child: TextField(
+          controller: noteController,
+          maxLines: 5,
+          decoration: InputDecoration(
+            hintText: 'Введите вашу заметку',
+            border: OutlineInputBorder(),
+          ),
         ),
       ),
     );
