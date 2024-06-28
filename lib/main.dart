@@ -22,15 +22,13 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Notes app'),
-      ),
+      appBar: AppBar(title: Text('Notes app')),
       body: Stack(
-        children: <Widget>[
+        children: [
           Container(
             decoration: BoxDecoration(
               image: DecorationImage(
-                image: NetworkImage('https://bogatyr.club/uploads/posts/2023-03/thumbs/1678821186_bogatyr-club-p-fon-dlya-zametok-foni-vkontakte-67.png'), // Замените ссылку на ваше изображение
+                image: NetworkImage('https://bogatyr.club/uploads/posts/2023-03/thumbs/1678821186_bogatyr-club-p-fon-dlya-zametok-foni-vkontakte-67.png'),
                 fit: BoxFit.cover,
               ),
             ),
@@ -38,24 +36,14 @@ class HomeScreen extends StatelessWidget {
           Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
-              children: <Widget>[
+              children: [
                 ElevatedButton(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => SelectionScreen()),
-                    );
-                  },
+                  onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => SelectionScreen())),
                   child: Text('Старт'),
                 ),
                 SizedBox(height: 20),
                 ElevatedButton(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => ProfileScreen()),
-                    );
-                  },
+                  onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => ProfileScreen())),
                   child: Text('Профиль'),
                 ),
               ],
@@ -76,11 +64,9 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   String firstName = '';
   String lastName = '';
-  String profilePictureUrl =
-      'https://www.sdp.ulaval.ca/blogue/wp-content/uploads/2016/02/shutterstock_201571106.jpg';
-
-  TextEditingController firstNameController = TextEditingController();
-  TextEditingController lastNameController = TextEditingController();
+  final profilePictureUrl = 'https://www.sdp.ulaval.ca/blogue/wp-content/uploads/2016/02/shutterstock_201571106.jpg';
+  final firstNameController = TextEditingController();
+  final lastNameController = TextEditingController();
 
   @override
   void initState() {
@@ -93,9 +79,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
     setState(() {
       firstName = prefs.getString('firstName') ?? '';
       lastName = prefs.getString('lastName') ?? '';
+      firstNameController.text = firstName;
+      lastNameController.text = lastName;
     });
-    firstNameController.text = firstName;
-    lastNameController.text = lastName;
   }
 
   Future<void> saveUserData() async {
@@ -106,42 +92,24 @@ class _ProfileScreenState extends State<ProfileScreen> {
       firstName = firstNameController.text;
       lastName = lastNameController.text;
     });
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Имя и фамилия сохранены')),
-    );
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Имя и фамилия сохранены')));
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Профиль'),
-      ),
+      appBar: AppBar(title: Text('Профиль')),
       body: Padding(
         padding: EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
-            CircleAvatar(
-              radius: 50,
-              backgroundImage: Image.network(
-                profilePictureUrl,
-              ).image,
-            ),
+          children: [
+            CircleAvatar(radius: 50, backgroundImage: NetworkImage(profilePictureUrl)),
             SizedBox(height: 20),
-            TextField(
-              controller: firstNameController,
-              decoration: InputDecoration(labelText: 'Имя'),
-            ),
-            TextField(
-              controller: lastNameController,
-              decoration: InputDecoration(labelText: 'Фамилия'),
-            ),
+            TextField(controller: firstNameController, decoration: InputDecoration(labelText: 'Имя')),
+            TextField(controller: lastNameController, decoration: InputDecoration(labelText: 'Фамилия')),
             SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: saveUserData,
-              child: Text('Сохранить'),
-            ),
+            ElevatedButton(onPressed: saveUserData, child: Text('Сохранить')),
           ],
         ),
       ),
@@ -163,11 +131,7 @@ class _ThemeSwitcherState extends State<ThemeSwitcher> {
       onPressed: () {
         setState(() {
           isDarkModeEnabled = !isDarkModeEnabled;
-          if (isDarkModeEnabled) {
-            ThemeManager.setDarkMode();
-          } else {
-            ThemeManager.setLightMode();
-          }
+          ThemeManager.applyTheme(isDarkModeEnabled ? ThemeData.dark() : ThemeData.light());
         });
       },
       child: Icon(isDarkModeEnabled ? Icons.nightlight_round : Icons.wb_sunny),
@@ -176,23 +140,8 @@ class _ThemeSwitcherState extends State<ThemeSwitcher> {
 }
 
 class ThemeManager {
-  static void setDarkMode() {
-    final theme = ThemeData.dark();
-    applyTheme(theme);
-  }
-
-  static void setLightMode() {
-    final theme = ThemeData.light();
-    applyTheme(theme);
-  }
-
   static void applyTheme(ThemeData theme) {
-    final MaterialApp app = MaterialApp(
-      theme: theme,
-      darkTheme: theme,
-      home: HomeScreen(),
-    );
-    runApp(app);
+    runApp(MaterialApp(theme: theme, darkTheme: theme, home: HomeScreen()));
   }
 }
 
@@ -200,40 +149,23 @@ class SelectionScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Выбор'),
-      ),
+      appBar: AppBar(title: Text('Выбор')),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
+          children: [
             ElevatedButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => PlatformInfoScreen()),
-                );
-              },
+              onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => PlatformInfoScreen())),
               child: Text('Информация о платформе'),
             ),
             SizedBox(height: 20),
             ElevatedButton(
-              onPressed: () async {
-                await Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => NoteScreen()),
-                );
-              },
+              onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => NoteScreen())),
               child: Text('Заметки'),
             ),
             SizedBox(height: 20),
             ElevatedButton(
-              onPressed: () async {
-                await Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => ViewNotesScreen()),
-                );
-              },
+              onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => ViewNotesScreen())),
               child: Text('Просмотр заметок'),
             ),
           ],
@@ -257,21 +189,14 @@ class PlatformInfoScreen extends StatelessWidget {
         : 'Other';
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Информация о платформе'),
-      ),
+      appBar: AppBar(title: Text('Информация о платформе')),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
+          children: [
             Text('Платформа: $platform'),
             SizedBox(height: 20),
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: Text('OK'),
-            ),
+            TextButton(onPressed: () => Navigator.of(context).pop(), child: Text('OK')),
           ],
         ),
       ),
@@ -285,7 +210,7 @@ class NoteScreen extends StatefulWidget {
 }
 
 class _NoteScreenState extends State<NoteScreen> {
-  final TextEditingController noteController = TextEditingController();
+  final noteController = TextEditingController();
   List<Note> notes = [];
 
   @override
@@ -331,26 +256,21 @@ class _NoteScreenState extends State<NoteScreen> {
         padding: const EdgeInsets.all(20.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
+          children: [
             Expanded(
               child: ListView.builder(
                 itemCount: notes.length,
                 itemBuilder: (context, index) {
                   return ListTile(
                     title: Text(notes[index].text),
-                    trailing: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        IconButton(
-                          icon: Icon(Icons.delete),
-                          onPressed: () {
-                            setState(() {
-                              notes.removeAt(index);
-                              saveNotes();
-                            });
-                          },
-                        ),
-                      ],
+                    trailing: IconButton(
+                      icon: Icon(Icons.delete),
+                      onPressed: () {
+                        setState(() {
+                          notes.removeAt(index);
+                          saveNotes();
+                        });
+                      },
                     ),
                   );
                 },
