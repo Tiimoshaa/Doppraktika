@@ -1,0 +1,36 @@
+name: my_flutter_app
+description: Пример приложения на Flutter с кнопками, профилем и переключателем темы.
+version: 1.0.0
+
+environment:
+  sdk: ">=2.12.0 <3.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  platform_info: ^4.0.2
+  shared_preferences: ^2.0.8
+  cached_network_image: ^3.0.0
+  image_picker: ^0.8.3+2
+  device_info: ^2.0.0
+
+  # Дополнительные зависимости, если они нужны:
+  # provider: ^5.0.0 # Пример зависимости для управления состоянием
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+flutter:
+  uses-material-design: true
+
+  # Другие настройки Flutter, если нужно:
+  # assets:
+  #   - assets/images/
+  # fonts:
+  #   - family: Roboto
+  #     fonts:
+  #       - asset: fonts/Roboto-Regular.ttf
+  #         weight: 400
+  #       - asset: fonts/Roboto-Bold.ttf
+  #         weight: 700
